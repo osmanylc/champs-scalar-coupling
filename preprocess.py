@@ -9,9 +9,7 @@ def load_data(center=False):
     test = pd.read_csv('test.csv', index_col='id')
     coords = pd.read_csv('structures.csv')
 
-    if center:
-        coords = center_coords(coords)
-
+    coords = center_coords(coords)
     train = add_coords(train, coords)
     test = add_coords(test, coords)
 
@@ -46,17 +44,61 @@ def center_coords(df):
     return df
 
 
-def encode_labels(df):
-    df = df.copy()
-    enc = LabelEncoder()
+def encode_labels(train, test):
+    train, test = train.copy(), test.copy()
+    le = LabelEncoder()
 
     for feature in ['type', 'atom_0', 'atom_1']:
-        enc.fit(df.loc[:, feature])
-        df.loc[:, feature] = enc.transform(df.loc[:, feature])
+        le.fit(train.loc[:, feature])
+        train.loc[:, feature] = le.transform(train.loc[:, feature])
+        test.loc[:, feature] = le.transform(test.loc[:, feature])
 
-    df.drop(columns=['molecule_name'], inplace=True)
+    return train, test
 
-    return df
+
+def add_atom_count(train, test, coords):
+    counts_df = count_atoms(coords)
+
+    return (df.merge(counts_df, how='left', on='molecule_name')
+        for df in [train, test])
+
+
+def add_distance(train, test):
+    train_d, test_d = (distance(df) for df in [train, test])
+
+    return (df.assign(d=d) 
+        for df,d in zip([train, test], [train_d, test_d]))
+
+
+def center_d(train, test):
+    norms_0 = []
+    norms_1 = []
+
+    for df in [train, test]:
+        xyz_0 = df.loc[:, ['x_0', 'y_0', 'z_0']].values
+        xyz_1 = df.loc[:, ['x_1', 'y_1', 'z_1']].values
+
+        norms_0.append(np.linalg.norm(xyz_0, axis=1))
+        norms_1.append(np.linalg.norm(xyz_1, axis=1))
+
+    return (df.assign(center_d_0=c0, center_d_1=c1)
+        for df,c0,c1 in zip([train, test], norms_0, norms_1))
+
+
+def center_cos(train, test):
+    coss = []
+
+    for df in [train, test]:
+        xyz_0 = df.loc[:, ['x_0', 'y_0', 'z_0']].values
+        xyz_1 = df.loc[:, ['x_1', 'y_1', 'z_1']].values
+
+        dot = np.sum(xyz_0 * xyz_1, axis=1)
+        norm_prod = (np.linalg.norm(xyz_0, axis=1) 
+            * np.linalg.norm(xyz_1, axis=1))
+        coss.append(dot / norm_prod)
+
+    return (df.assign(center_cos=c) 
+        for df,c in zip([train, test], coss))
 
 
 def count_atoms(coords_df):
@@ -76,3 +118,10 @@ def split_validation(train_df, test_size = .2):
         train_test_split(x, y, test_size=test_size, random_state=0)
 
     return x_train, x_val, y_train, y_val
+
+
+def distance(df):
+    coord_0 = df.loc[:, ['x_0', 'y_0', 'z_0']].values
+    coord_1 = df.loc[:, ['x_1', 'y_1', 'z_1']].values
+
+    return np.linalg.norm(coord_1 - coord_0, axis=1)
