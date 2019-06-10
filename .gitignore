@@ -108,3 +108,5 @@ venv.bak/
 *.csv
 *.txt
 structures/
+mol2_structures/
+
