@@ -56,9 +56,9 @@ for filename in os.listdir(dirname):
             bond_info = lines[i].split()
 
             idx = bond_info[0]
-            atom_0 = atom_info[1]
-            atom_1 = atom_info[2]
-            bond_order = atom_info[3]
+            atom_0 = bond_info[1]
+            atom_1 = bond_info[2]
+            bond_order = bond_info[3]
             bond_vals = [molecule, idx, atom_0, atom_1, bond_order]
 
             writer.writerow(dict(zip(bond_features, bond_vals)))
