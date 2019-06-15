@@ -37,7 +37,7 @@ for filename in os.listdir(dirname):
         for i in range(atom_begin, atom_begin + n_atoms):
             atom_info = lines[i].split()
 
-            idx = atom_info[0]
+            idx = int(atom_info[0]) - 1
             elt = atom_info[1]
             x = atom_info[2]
             y = atom_info[3]
@@ -55,9 +55,9 @@ for filename in os.listdir(dirname):
         for i in range(bond_begin, bond_begin + n_bonds):
             bond_info = lines[i].split()
 
-            idx = bond_info[0]
-            atom_0 = bond_info[1]
-            atom_1 = bond_info[2]
+            idx = int(bond_info[0]) - 1
+            atom_0 = int(bond_info[1]) - 1
+            atom_1 = int(bond_info[2]) - 1
             bond_order = bond_info[3]
             bond_vals = [molecule, idx, atom_0, atom_1, bond_order]
 

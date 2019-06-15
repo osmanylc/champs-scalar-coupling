@@ -5,9 +5,9 @@ from sklearn.model_selection import train_test_split
 
 
 def load_data(center=False):
-    train = pd.read_csv('train.csv', index_col='id')
-    test = pd.read_csv('test.csv', index_col='id')
-    coords = pd.read_csv('structures.csv')
+    train = pd.read_csv('../data/train.csv', index_col='id')
+    test = pd.read_csv('../data/test.csv', index_col='id')
+    coords = pd.read_csv('../data/structures.csv')
 
     coords = center_coords(coords)
     train = add_coords(train, coords)
@@ -48,8 +48,9 @@ def encode_labels(train, test):
     train, test = train.copy(), test.copy()
     le = LabelEncoder()
 
-    for feature in ['type', 'atom_0', 'atom_1']:
-        le.fit(train.loc[:, feature])
+    for feature in ['type', 'element_0', 'element_1',
+        'atom_type_0', 'atom_type_1']:
+        le.fit(pd.concat([train.loc[:, feature], test.loc[:, feature]]))
         train.loc[:, feature] = le.transform(train.loc[:, feature])
         test.loc[:, feature] = le.transform(test.loc[:, feature])
 
