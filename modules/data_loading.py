@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 def load_data():
-    train = pd.read_csv('../data/train.csv', index_col='id')
-    test = pd.read_csv('../data/test.csv', index_col='id')
+    train = pd.read_csv('../data/train.csv')
+    test = pd.read_csv('../data/test.csv')
     coords = pd.read_csv('../data/structures.csv')
     atoms = pd.read_csv('../data/atoms.csv')
     bonds = pd.read_csv('../data/bonds.csv')

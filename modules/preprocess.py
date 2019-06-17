@@ -5,8 +5,8 @@ from sklearn.model_selection import train_test_split
 
 
 def load_data(center=False):
-    train = pd.read_csv('../data/train.csv', index_col='id')
-    test = pd.read_csv('../data/test.csv', index_col='id')
+    train = pd.read_csv('../data/train.csv')
+    test = pd.read_csv('../data/test.csv')
     coords = pd.read_csv('../data/structures.csv')
 
     coords = center_coords(coords)
@@ -46,15 +46,27 @@ def center_coords(df):
 
 def encode_labels(train, test):
     train, test = train.copy(), test.copy()
-    le = LabelEncoder()
+    ctg_features = ['type', 'element_0', 'element_1',
+        'atom_type_0', 'atom_type_1']
+    encs = dict()
 
-    for feature in ['type', 'element_0', 'element_1',
-        'atom_type_0', 'atom_type_1']:
+    for feature in ctg_features:
+        le = LabelEncoder()
+        encs[feature] = le
+
         le.fit(pd.concat([train.loc[:, feature], test.loc[:, feature]]))
         train.loc[:, feature] = le.transform(train.loc[:, feature])
         test.loc[:, feature] = le.transform(test.loc[:, feature])
 
-    return train, test
+    return train, test, encs
+
+
+def decode_labels(df, encs):
+    df = df.copy()
+    for feature, le in encs.items():
+        df.loc[:, feature] = le.inverse_transform(df.loc[:, feature])
+    
+    return df
 
 
 def add_atom_count(train, test, coords):
